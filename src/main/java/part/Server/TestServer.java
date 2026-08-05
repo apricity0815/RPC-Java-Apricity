@@ -2,6 +2,7 @@ package part.Server;
 
 import part.Server.provider.ServiceProvider;
 import part.Server.server.RpcServer;
+import part.Server.server.impl.NettyRPCRPCServer;
 import part.Server.server.impl.SimpleRPCRPCServer;
 import part.Server.server.impl.ThreadPoolRPCRPCServer;
 import part.common.service.UserService;
@@ -25,10 +26,12 @@ public class TestServer {
         //注册服务到服务注册中心，使得客户端能够根据接口名称或标识查找到对应的服务
         serviceProvider.provideServiceInterface(userService);
 
-        //实例化服务端RPC服务器，传入服务注册中心对象
-        //RpcServer rpcServer=new SimpleRPCRPCServer(serviceProvider);
-        //这里可以选择使用简单服务端或线程池服务端
-        RpcServer rpcServer = new ThreadPoolRPCRPCServer(serviceProvider);
+//        //实例化服务端RPC服务器，传入服务注册中心对象
+//        //RpcServer rpcServer=new SimpleRPCRPCServer(serviceProvider);
+//        //这里可以选择使用简单服务端或线程池服务端
+//        RpcServer rpcServer = new ThreadPoolRPCRPCServer(serviceProvider);
+
+        RpcServer rpcServer = new NettyRPCRPCServer(serviceProvider);
 
         //启动服务端
         rpcServer.start(9999);

@@ -2,6 +2,9 @@ package part.Client.proxy;
 
 import lombok.AllArgsConstructor;
 import part.Client.IOClient;
+import part.Client.rpcClient.RpcClient;
+import part.Client.rpcClient.impl.NettyRpcClient;
+import part.Client.rpcClient.impl.SimpleSocketRpcCilent;
 import part.common.Message.RpcRequest;
 import part.common.Message.RpcResponse;
 
@@ -17,10 +20,30 @@ import java.lang.reflect.Proxy;
  */
 @AllArgsConstructor
 public class ClientProxy implements InvocationHandler {
-    //传入参数service接口的class对象，反射封装成一个request
-    //初始化代理类时传入host和port，方便后续远程调用
-    private String host;
-    private int port;
+//    //传入参数service接口的class对象，反射封装成一个request
+//    //初始化代理类时传入host和port，方便后续远程调用
+//    private String host;
+//    private int port;
+
+    //加入RpcClient类变量，传入不同的client实现类（SimpleSocketRpcCilent、NettyRpcClient），即可调用公共的接口sendRequest方法发送请求
+    private RpcClient rpcClient;
+
+    //构造函数，根据传入的参数选择不同的RpcClient实现类
+    public ClientProxy(String host, int port, int chooose) {
+        switch (chooose){
+            case 0:
+                rpcClient = new NettyRpcClient(host, port);
+                break;
+            case 1:
+                rpcClient = new SimpleSocketRpcCilent(host, port);
+        }
+    }
+
+    //构造函数，默认使用NettyRpcClient作为RpcClient的实现类
+    public ClientProxy(String host, int port) {
+        rpcClient = new NettyRpcClient(host, port);
+    }
+
 
     //jdk动态代理，每一次代理对象调用方法，都会经过此方法增强（反射获取request对象，socket发送到服务端）
     //核心逻辑，用于封装请求并处理服务端响应
@@ -33,8 +56,11 @@ public class ClientProxy implements InvocationHandler {
                 .params(args)
                 .paramsType(method.getParameterTypes())
                 .build();
-        //IOClient.sendRequest 和服务端进行数据传输,发送请求并接收响应
-        RpcResponse response= IOClient.sendRequest(host,port,request);
+
+//        //IOClient.sendRequest 和服务端进行数据传输,发送请求并接收响应
+//        RpcResponse response= IOClient.sendRequest(host,port,request);
+        //数据传输
+        RpcResponse response = rpcClient.sendRequest(request);
         //获取服务端响应中的数据部分，返回给调用者
         return response.getData();
     }
