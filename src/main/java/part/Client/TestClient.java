@@ -12,10 +12,13 @@ import part.common.service.UserService;
  */
 public class TestClient {
     public static void main(String[] args) {
-//      //创建ClientProxy对象作为代理类，传入服务端的ip和端口号。处理远程方法调用的封装、发送请求和接收响应的工作
-//      ClientProxy clientProxy=new ClientProxy("127.0.0.1",9999);
-        //创建代理对象参数修改一下，可选择不同的客户端（simple、netty）
-        ClientProxy clientProxy=new ClientProxy("localhost",9999,0);
+////      //创建ClientProxy对象作为代理类，传入服务端的ip和端口号。处理远程方法调用的封装、发送请求和接收响应的工作
+////      ClientProxy clientProxy=new ClientProxy("127.0.0.1",9999);
+//        //创建代理对象参数修改一下，可选择不同的客户端（simple、netty）
+//        ClientProxy clientProxy=new ClientProxy("localhost",9999,0);
+        //内部改为通过动态服务发现机制（如Zookeeper）获取服务端的ip和端口号，客户端不需要手动指定服务端地址
+        ClientProxy clientProxy = new ClientProxy();
+
         //客户端通过clientProxy动态获取UserService接口的代理对象，调用接口方法时会被拦截并发送RPC请求到服务端
         UserService proxy=clientProxy.getProxy(UserService.class);
 

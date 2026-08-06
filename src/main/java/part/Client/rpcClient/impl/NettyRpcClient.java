@@ -9,8 +9,12 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import part.Client.netty.nettyInitializer.NettyClientInitializer;
 import part.Client.rpcClient.RpcClient;
+import part.Client.serviceCenter.ServiceCenter;
+import part.Client.serviceCenter.ZKServiceCenter;
 import part.common.Message.RpcRequest;
 import part.common.Message.RpcResponse;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author Apric
@@ -19,20 +23,27 @@ import part.common.Message.RpcResponse;
  * @date 2026/8/5 16:17
  */
 public class NettyRpcClient implements RpcClient {
-    // 主机地址
-    private String host;
-    // 端口号
-    private int port;
+//    // 主机地址
+//    private String host;
+//    // 端口号
+//    private int port;
+
     // Netty客户端的引导类，是Netty用于启动客户端的对象，负责设置与服务器的连接配置
     private static final Bootstrap bootstrap;
     // Netty客户端的事件循环组，是Netty的线程池，用于处理I/O操作
     // NioEventLoopGroup是EventLoopGroup的一个实现，专门用于处理NIO（非阻塞I/O）操作，适用于客户端和服务端的网络通信
     private static final EventLoopGroup eventLoopGroup;
 
-    //构造函数，初始化主机地址和端口号
-    public NettyRpcClient(String host,int port){
-        this.host=host;
-        this.port=port;
+//    //构造函数，初始化主机地址和端口号
+//    public NettyRpcClient(String host,int port){
+//        this.host=host;
+//        this.port=port;
+//    }
+
+    //从固定端口号和地址 改为 zk注册中心获取地址和端口号
+    private ServiceCenter serviceCenter;
+    public NettyRpcClient(){
+        this.serviceCenter = new ZKServiceCenter();
     }
 
     //netty客户端初始化，在静态代码块中进行初始化，确保在类加载时就完成配置
@@ -48,6 +59,11 @@ public class NettyRpcClient implements RpcClient {
     }
     @Override
     public RpcResponse sendRequest(RpcRequest request) {
+        //从zk注册中心获取服务地址和端口号
+        InetSocketAddress address = serviceCenter.serviceDiscovery(request.getInterfaceName());
+        String host = address.getHostName();
+        int port = address.getPort();
+
         try {
             //创建一个ChannelFuture对象，表示一个异步操作的结果
             ChannelFuture channelFuture  = bootstrap.connect(host, port)    //客户端发起连接到指定的服务器
